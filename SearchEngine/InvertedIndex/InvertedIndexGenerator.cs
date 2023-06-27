@@ -1,44 +1,50 @@
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Threading;
 
-namespace SearchEngine.InvertedIndex;
-
-public class InvertedIndexGenerator : IMapGenerator
+namespace SearchEngine.InvertedIndex
 {
-    private Dictionary<string, LinkedList<string>> _invertedIndex;
-    private LinkedList<Thread> _threads = new LinkedList<Thread>();
-
-    public InvertedIndexGenerator()
+    public class InvertedIndexGenerator : IMapGenerator
     {
-        _invertedIndex = new Dictionary<string, LinkedList<string>>();
-    }
+        private Dictionary<string, LinkedList<string>> _invertedIndex;
+        private LinkedList<Thread> _threads = new LinkedList<Thread>();
+        private object _lockObject = new object();
 
-    [MethodImpl(MethodImplOptions.Synchronized)]
-    public void AddIndex(string word, string docName)
-    {
-        Thread thread = new Thread(() =>
+        public InvertedIndexGenerator()
         {
-            if (_invertedIndex.TryGetValue(word, out var value))
-            {
-                value.AddLast(docName);
-            }
-            else
-            {
-                LinkedList<string> docList = new LinkedList<string>();
-                docList.AddLast(docName);
-                _invertedIndex.Add(word, docList);
-            }
-        });
-        _threads.AddLast(thread);
-        thread.Start();
-    }
+            _invertedIndex = new Dictionary<string, LinkedList<string>>();
+        }
 
-    public Dictionary<string, LinkedList<string>> GetIndex()
-    {
-        return _invertedIndex;
-    }
+        public void AddIndex(string word, string docName)
+        {
+            Thread thread = new Thread(() =>
+            {
+                lock (_lockObject)
+                {
+                    if (_invertedIndex.TryGetValue(word, out var value))
+                    {
+                        value.AddLast(docName);
+                    }
+                    else
+                    {
+                        LinkedList<string> docList = new LinkedList<string>();
+                        docList.AddLast(docName);
+                        _invertedIndex.Add(word, docList);
+                    }
+                }
+            });
 
-    public LinkedList<Thread> GetThreads()
-    {
-        return _threads;
+            _threads.AddLast(thread);
+            thread.Start();
+        }
+
+        public Dictionary<string, LinkedList<string>> GetIndex()
+        {
+            return _invertedIndex;
+        }
+
+        public LinkedList<Thread> GetThreads()
+        {
+            return _threads;
+        }
     }
 }

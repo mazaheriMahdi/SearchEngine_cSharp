@@ -5,20 +5,22 @@ public class ProgressBar
     private int _length;
     private int _maxValue;
     private int _minValue;
-    private char _completedChar;
-    private char _incompleteChar;
+    private string _completedColor;
+    private string _incompleteColor;
     private char[] _spinners;
     private int _spinnerIndex;
+    private DateTime _startTime;
 
-    public ProgressBar(int length, int maxValue, int minValue, char completedChar = '#', char incompleteChar = '-')
+    public ProgressBar(int length, int maxValue, int minValue, string completedColor = "\u001b[42m", string incompleteColor = "\u001b[41m")
     {
         _length = length;
         _maxValue = maxValue;
         _minValue = minValue;
-        _completedChar = completedChar;
-        _incompleteChar = incompleteChar;
+        _completedColor = completedColor;
+        _incompleteColor = incompleteColor;
         _spinners = new char[] { '◐', '◓', '◑', '◒' };
         _spinnerIndex = 0;
+        _startTime = DateTime.Now;
     }
 
     public void Update(int currentValue)
@@ -32,11 +34,14 @@ public class ProgressBar
         int completedWidth = (int)(_length * percentage);
         int incompleteWidth = _length - completedWidth;
 
-        string progressBar = new string(_completedChar, completedWidth) + new string(_incompleteChar, incompleteWidth);
+        string progressBar = $"{_completedColor}{new string(' ', completedWidth)}\u001b[0m{_incompleteColor}{new string(' ', incompleteWidth)}\u001b[0m";
         char spinner = _spinners[_spinnerIndex];
 
         _spinnerIndex = (_spinnerIndex + 1) % _spinners.Length;
 
-        Console.Write("\r[{0}] {1}% {2}", progressBar, (int)(percentage * 100), spinner);
+        TimeSpan elapsedTime = DateTime.Now - _startTime;
+        string elapsedTimeString = elapsedTime.ToString(@"hh\:mm\:ss");
+
+        Console.Write("\r[{0}] {1}% {2} Elapsed Time: {3}", progressBar, (int)(percentage * 100), spinner, elapsedTimeString);
     }
 }

@@ -16,23 +16,27 @@ namespace SearchEngine.Doc
             _fileSplitter = new FileSplitter();
         }
 
-        public void Scan(string folderPath)
+        public async Task Scan(string folderPath)
         {
             var files = Directory.GetFiles(folderPath).ToList();
 
             _numberOfFiles = files.Count;
-        
-            files.ForEach(
-                file =>
+
+            object lockObject = new object();
+
+            List<Task> tasks = new List<Task>();
+            files.ForEach(file=>
+            {
+                Task task = new Task(() =>
                 {
-                    
                     var words = _fileSplitter.Split(file);
-                    words.ForEach(word => _mapGenerator.AddIndex(word, file));
-                    _mapGenerator.GetThreads().ToList().ForEach(thread => thread.Join());
-                    // _mapGenerator.GetThreads().Clear();
-                    _numberOfFilesScanned++;
-                }
-            );
+                    words.ForEach(word=>_mapGenerator.AddIndex(word, file));
+                    Interlocked.Increment(ref _numberOfFilesScanned);
+                });
+                tasks.Add(task);
+                task.Start();
+            });
+            await Task.WhenAll(tasks);
         }
 
         public Dictionary<string, LinkedList<string>> GetIndex()
