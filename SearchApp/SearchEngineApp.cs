@@ -11,9 +11,9 @@ static class SearchEngineApp
         IDocScanner iDocScanner = new DocScanner();
         Thread thread = new Thread(o => { iDocScanner.Scan(path); });
         thread.Start();
-        
-        
-        ProgressBar progressBar = new ProgressBar(30, 1000, 0);
+
+        while (iDocScanner.GetProgress().Item1==-1){Thread.Sleep(100);}
+        ProgressBar progressBar = new ProgressBar(30, iDocScanner.GetProgress().Item1, 0);
         while (!iDocScanner.IsFinished())
         {
             progressBar.Update(iDocScanner.GetProgress().Item2);
@@ -33,7 +33,7 @@ static class SearchEngineApp
             {
                 Console.WriteLine("The word is in these files: ");
                 var index = 0;
-                foreach (var doc in res[word])
+                foreach (var doc in res[word].OrderBy(item=>item))
                 {
                     Console.WriteLine(index++ + "-->" + doc);
                 }
