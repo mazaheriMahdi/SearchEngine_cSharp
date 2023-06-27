@@ -3,7 +3,7 @@ using System.Windows.Markup;
 
 namespace SearchEngine.FileUtility;
 
-public class FileSplitter : IFileSplitter
+public class FileSplitter : IFileSplitter 
 {
     string pattern = "\\s|'|\\.|!|\"|\"|,|:|;|\\?|\\(|\\)|\\[|\\]|\\{|\\}| |\\\\* |\\*|/|\\\\";
     public List<string> Split(string path)
@@ -18,6 +18,7 @@ public class FileSplitter : IFileSplitter
             && word.Length > 1
             )
             .Select(word=>word.Trim().ToUpper())
+            .Distinct()
             .ToList();
 
 

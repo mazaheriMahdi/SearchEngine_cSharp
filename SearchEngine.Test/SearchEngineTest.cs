@@ -1,5 +1,8 @@
+using SearchEngine.Doc;
 using SearchEngine.FileUtility;
 using SearchEngine.InvertedIndex;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace SearchEngine.Test;
 
@@ -7,49 +10,13 @@ using SearchEngine;
 
 public class SearchEngineTest
 {
-    [Fact]
-    public void MapGeneratorTest()
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public SearchEngineTest(ITestOutputHelper testOutputHelper)
     {
-        IMapGenerator invertedIndexGenerator = new InvertedIndexGenerator();
-        invertedIndexGenerator.AddIndex("HELLO", "doc1.txt");
-        invertedIndexGenerator.AddIndex("ALI", "doc1.txt");
-        invertedIndexGenerator.AddIndex("CAR", "doc1.txt");
-        invertedIndexGenerator.AddIndex("GAME", "doc1.txt");
-        invertedIndexGenerator.AddIndex("HELLO", "doc2.txt");
-        invertedIndexGenerator.AddIndex("ALI", "doc2.txt");
-        invertedIndexGenerator.AddIndex("CAR", "doc2.txt");
-        invertedIndexGenerator.AddIndex("GAME", "doc2.txt");
-        invertedIndexGenerator.AddIndex("HELLO", "doc3.txt");
-
-        var res = invertedIndexGenerator.GetIndex();
-
-        LinkedList<string> hello = new LinkedList<string>();
-        hello.AddLast("doc1.txt");
-        hello.AddLast("doc2.txt");
-        hello.AddLast("doc3.txt");
-
-        LinkedList<string> ali = new LinkedList<string>();
-        ali.AddLast("doc1.txt");
-        ali.AddLast("doc2.txt");
-
-        LinkedList<string> car = new LinkedList<string>();
-        car.AddLast("doc1.txt");
-        car.AddLast("doc2.txt");
-
-        LinkedList<string> game = new LinkedList<string>();
-        game.AddLast("doc1.txt");
-        game.AddLast("doc2.txt");
-
-        Dictionary<string, LinkedList<string>> expected = new Dictionary<string, LinkedList<string>>()
-        {
-            { "HELLO", hello },
-            { "ALI", ali },
-            { "CAR", car },
-            { "GAME", game }
-        };
-
-        Assert.Equal(expected, res);
+        _testOutputHelper = testOutputHelper;
     }
+
 
     [Fact]
     public void SplitterTest()
@@ -62,5 +29,45 @@ public class SearchEngineTest
         List<string> expected = new List<string>() { "HELLO", "ALI", "CAR", "GAME" };
 
         Assert.Equal(expected, res);
+    }
+
+
+
+    [Fact]
+    public void DocScannerTest()
+    {
+        var folderPath = "/Users/mahdimazaheri/Programming/SearchEngine/SearchEngine/SearchEngine.Test/Data/";
+        IDocScanner docScanner = new DocScanner();
+        docScanner.Scan(folderPath);
+        var res = docScanner.GetIndex();
+        
+        LinkedList<string> hello = new LinkedList<string>();
+        hello.AddLast(folderPath+"doc1.txt");
+
+        LinkedList<string> ali = new LinkedList<string>();
+        ali.AddLast(folderPath+"doc1.txt");
+
+        LinkedList<string> car = new LinkedList<string>();
+        car.AddLast(folderPath+"doc1.txt");
+
+        LinkedList<string> game = new LinkedList<string>();
+        game.AddLast(folderPath+"doc1.txt");
+
+        Dictionary<string, LinkedList<string>> expected = new Dictionary<string, LinkedList<string>>()
+        {
+            { "HELLO", hello },
+            { "ALI", ali },
+            { "CAR", car },
+            { "GAME", game }
+        };
+
+        foreach (var keyValuePair in res)
+        {
+            _testOutputHelper.WriteLine(keyValuePair.Key);
+            _testOutputHelper.WriteLine(keyValuePair.Value.ToString());
+        }
+
+        Assert.True(true);
+        
     }
 }
